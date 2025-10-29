@@ -6,7 +6,7 @@ const axiosClient = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: false, // Set to false for credentials to work properly
+  withCredentials: true, // Set to false for credentials to work properly
 });
 
 // Request interceptor
