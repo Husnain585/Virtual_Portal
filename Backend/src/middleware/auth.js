@@ -1,20 +1,34 @@
-// middleware/auth.js
+import ErrorHandler from "../utils/errorHandler.js";
+import catchAsyncErrors from "./catchAsyncErrors.js";
+import User from "../models/userModel.js";
 import jwt from "jsonwebtoken";
-import { jwtConfig } from "../config/jwt.js";
 
-export const authenticateUser = (req, res, next) => {
-  try {
-    const token =
-      req.cookies.token || req.header("Authorization")?.replace("Bearer ", "");
+// Middleware: Check if user is authenticated
+export const isAuthenticatedUser = catchAsyncErrors(async (req, res, next) => {
+  const { token } = req.cookies;
 
-    if (!token) {
-      return res.status(401).json({ message: "Access denied. No token provided." });
+  if (!token) {
+    return next(new ErrorHandler("Please login to access this resource.", 401));
+  }
+
+  const decodeData = jwt.verify(token, process.env.SECRET_KEY);
+  req.user = await User.findById(decodeData.id);
+
+  next();
+});
+
+// Middleware: Authorize specific roles
+export const authorizeRoles = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return next(
+        new ErrorHandler(
+          `Role: ${req.user.role} is not allowed to access this resource`,
+          403
+        )
+      );
     }
 
-    const decoded = jwt.verify(token, jwtConfig.secret);
-    req.user = decoded; // attach user data to request object
     next();
-  } catch (error) {
-    return res.status(401).json({ message: "Invalid or expired token." });
-  }
+  };
 };

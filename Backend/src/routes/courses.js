@@ -8,19 +8,19 @@ import {
   deleteCourse,
   enrollCourse,
 } from "../controllers/courseController.js";
-import { authenticateUser } from "../middleware/auth.js";
+import { isAuthenticatedUser } from "../middleware/auth.js";
 import { validateRequest } from "../middleware/validation.js";
 import { courseSchema } from "../validations/courseValidation.js";
 
 const router = express.Router();
 
-router.post("/", authenticateUser, validateRequest(courseSchema), createCourse);
-router.get("/", authenticateUser, getAllCourses);
-router.get("/:id", authenticateUser, getCourseById);
-router.put("/:id", authenticateUser, updateCourse);
-router.delete("/:id", authenticateUser, deleteCourse);
+router.post("/", isAuthenticatedUser, validateRequest(courseSchema), createCourse);
+router.get("/", isAuthenticatedUser, getAllCourses);
+router.get("/:id", isAuthenticatedUser, getCourseById);
+router.put("/:id", isAuthenticatedUser, updateCourse);
+router.delete("/:id",isAuthenticatedUser, deleteCourse);
 
 // Student enrollment
-router.post("/:id/enroll", authenticateUser, enrollCourse);
+router.post("/:id/enroll", isAuthenticatedUser, enrollCourse);
 
 export default router;

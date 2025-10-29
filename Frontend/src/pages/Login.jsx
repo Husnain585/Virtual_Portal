@@ -1,4 +1,4 @@
-// src/pages/Login.jsx
+// src/pages/Login.jsx - USING EXISTING METHOD
 import React from "react";
 import LoginForm from "../components/forms/LoginForm";
 import { useAuth } from "../hooks/useAuth";
@@ -6,15 +6,17 @@ import { useToast } from "../context/ToastContext";
 import { useNavigate } from "react-router-dom";
 
 const Login = () => {
-  const { login } = useAuth();
+  const { getDashboardPath } = useAuth();
   const { success, error } = useToast();
   const navigate = useNavigate();
 
   const handleLogin = async (formData) => {
     try {
-      const res = await login(formData);
-      success(`Welcome, ${res.user.name || res.user.email}`);
-      navigate("/");
+      success(`Welcome, ${formData.user.name || formData.user.email}`);
+      
+      // Using your existing getDashboardPath method
+      const dashboardPath = getDashboardPath(formData.user.role);
+      navigate(dashboardPath, { replace: true });
     } catch (err) {
       error(err?.message || "Invalid credentials");
     }
