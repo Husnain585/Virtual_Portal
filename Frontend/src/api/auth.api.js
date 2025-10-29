@@ -9,22 +9,46 @@ import authService from "../services/auth.service";
  * returns: { token, user }
  */
 // src/api/auth.api.js - Frontend
+// src/api/auth.api.js
 export async function loginAPI({ email, password }) {
   try {
-    console.log('🔄 Attempting login with:', { email });
+    console.log('🔐 LOGIN DEBUG START ==================');
+    console.log('📤 Sending login request with:', { 
+      email: email || 'EMPTY EMAIL', 
+      password: password ? '***' : 'EMPTY PASSWORD' 
+    });
     
-    const res = await axiosClient.post("/auth/login", { email, password });
-    const data = res.data;
-    
-    console.log('✅ Login response:', data);
-    
-    if (data?.user) {
-      authService.saveAuthData(data.user);
+    // Check if values are actually defined
+    if (!email || !password) {
+      console.error('❌ MISSING CREDENTIALS:', {
+        emailExists: !!email,
+        passwordExists: !!password,
+        email,
+        password: password ? 'has value' : 'empty'
+      });
+      throw new Error('Email and password are required');
     }
-    return data;
+
+    const res = await axiosClient.post("/auth/login", { email, password });
+    
+    console.log('✅ LOGIN SUCCESS - Response:', res.data);
+    console.log('🔐 LOGIN DEBUG END ==================');
+    
+    if (res.data?.user) {
+      authService.saveAuthData(res.data);
+    }
+    return res.data;
   } catch (err) {
-    console.error('❌ Login error:', err.response?.data || err.message);
-    throw err?.response?.data || err;
+    console.error('❌ LOGIN FAILED - Full error details:');
+    console.error('Error object:', err);
+    console.error('Response status:', err.response?.status);
+    console.error('Response data:', err.response?.data);
+    console.error('Response headers:', err.response?.headers);
+    console.error('Request config:', err.config);
+    
+    // Throw a more specific error
+    const errorMessage = err.response?.data?.message || err.message || 'Login failed';
+    throw new Error(errorMessage);
   }
 }
 
