@@ -1,4 +1,4 @@
-// src/dashboard/StatsCard.jsx
+// src/components/widgets/StatsCard.jsx
 import React from "react";
 import { ArrowUpRight, ArrowDownRight } from "lucide-react";
 

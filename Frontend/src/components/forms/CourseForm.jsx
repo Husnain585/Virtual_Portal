@@ -1,105 +1,151 @@
-// src/forms/CourseForm.jsx
-import React, { useState } from "react";
+// src/components/forms/CourseForm.jsx
+import React, { useState, useEffect } from "react";
 import Input from "../common/Input";
 import Button from "../common/Button";
-import Loader from "../common/Loader";
 import { createCourse, updateCourse } from "../../api/course.api";
+import { useToast } from "../../context/ToastContext";
 
-const CourseForm = ({ initialData = {}, onSubmitSuccess }) => {
-  const isEditing = !!initialData?.id;
-  const [form, setForm] = useState({
-    name: initialData.name || "",
-    code: initialData.code || "",
-    creditHours: initialData.creditHours || "",
-    department: initialData.department || "",
-    instructorId: initialData.instructorId || "",
-    description: initialData.description || "",
-  });
+const CourseForm = ({ course, onSubmitSuccess }) => {
+  const { success, error } = useToast();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [form, setForm] = useState({
+    name: "",
+    code: "",
+    creditHours: "",
+    department: "",
+    description: "",
+    instructorId: ""
+  });
 
-  const handleChange = (e) =>
-    setForm({ ...form, [e.target.name]: e.target.value });
+  useEffect(() => {
+    if (course) {
+      setForm({
+        name: course.name || "",
+        code: course.code || "",
+        creditHours: course.creditHours || "",
+        department: course.department || "",
+        description: course.description || "",
+        instructorId: course.instructorId || ""
+      });
+    }
+  }, [course]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
+
     try {
-      const res = isEditing
-        ? await updateCourse(initialData.id, form)
-        : await createCourse(form);
-      onSubmitSuccess && onSubmitSuccess(res);
+      if (course) {
+        await updateCourse(course.id, form);
+        success("Course updated successfully");
+      } else {
+        await createCourse(form);
+        success("Course created successfully");
+      }
+      
+      onSubmitSuccess();
+      setForm({
+        name: "",
+        code: "",
+        creditHours: "",
+        department: "",
+        description: "",
+        instructorId: ""
+      });
     } catch (err) {
-      setError(err?.message || "Failed to save course");
+      error(err.message || "Failed to save course");
     } finally {
       setLoading(false);
     }
   };
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="bg-white p-6 rounded-2xl shadow-md w-full max-w-lg mx-auto"
-    >
-      <h2 className="text-xl font-bold text-gray-800 mb-4">
-        {isEditing ? "Edit Course" : "Create Course"}
+    <div className="p-6">
+      <h2 className="text-xl font-semibold mb-4">
+        {course ? "Edit Course" : "Create New Course"}
       </h2>
-      <Input
-        label="Course Name"
-        name="name"
-        value={form.name}
-        onChange={handleChange}
-        required
-      />
-      <Input
-        label="Course Code"
-        name="code"
-        value={form.code}
-        onChange={handleChange}
-        required
-        className="mt-3"
-      />
-      <div className="grid grid-cols-2 gap-3 mt-3">
+      
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Input
+            label="Course Name"
+            name="name"
+            value={form.name}
+            onChange={handleChange}
+            required
+            placeholder="Enter course name"
+          />
+          <Input
+            label="Course Code"
+            name="code"
+            value={form.code}
+            onChange={handleChange}
+            required
+            placeholder="e.g., CS101"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Input
+            label="Credit Hours"
+            name="creditHours"
+            type="number"
+            value={form.creditHours}
+            onChange={handleChange}
+            required
+            placeholder="e.g., 3"
+          />
+          <Input
+            label="Department"
+            name="department"
+            value={form.department}
+            onChange={handleChange}
+            required
+            placeholder="Enter department"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Description
+          </label>
+          <textarea
+            name="description"
+            value={form.description}
+            onChange={handleChange}
+            rows={3}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Enter course description"
+          />
+        </div>
+
         <Input
-          label="Credit Hours"
-          name="creditHours"
-          type="number"
-          value={form.creditHours}
+          label="Instructor ID"
+          name="instructorId"
+          value={form.instructorId}
           onChange={handleChange}
-          required
+          placeholder="Enter instructor ID (optional)"
         />
-        <Input
-          label="Department"
-          name="department"
-          value={form.department}
-          onChange={handleChange}
-          required
-        />
-      </div>
-      <Input
-        label="Instructor ID"
-        name="instructorId"
-        value={form.instructorId}
-        onChange={handleChange}
-        required
-        className="mt-3"
-      />
-      <div className="mt-3">
-        <label className="text-sm font-medium text-gray-700">Description</label>
-        <textarea
-          name="description"
-          value={form.description}
-          onChange={handleChange}
-          rows={3}
-          className="w-full border rounded-lg px-3 py-2 mt-1 focus:ring-2 focus:ring-blue-500"
-        />
-      </div>
-      {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
-      <Button type="submit" className="w-full mt-4" disabled={loading}>
-        {loading ? <Loader size={5} /> : isEditing ? "Update Course" : "Create Course"}
-      </Button>
-    </form>
+
+        <div className="flex gap-3 pt-4">
+          <Button
+            type="submit"
+            className="flex-1"
+            disabled={loading}
+          >
+            {loading ? "Saving..." : course ? "Update Course" : "Create Course"}
+          </Button>
+        </div>
+      </form>
+    </div>
   );
 };
 
