@@ -1,13 +1,13 @@
 // routes/users.js
 import express from "express";
-import { getAllUsers, getUserById, updateUser, deleteUser } from "../controllers/userController.js";
-import { authenticateUser } from "../middleware/auth.js";
+import { getAllUsers, getSingleUser, updatePassword, deleteUser } from "../controllers/userController.js";
+import { isAuthenticatedUser } from "../middleware/auth.js";
 
 const router = express.Router();
 
-router.get("/", authenticateUser, getAllUsers);
-router.get("/:id", authenticateUser, getUserById);
-router.put("/:id", authenticateUser, updateUser);
-router.delete("/:id", authenticateUser, deleteUser);
+router.get("/", isAuthenticatedUser, getAllUsers);
+router.get("/:id", isAuthenticatedUser, getSingleUser);
+router.put("/:id", isAuthenticatedUser, updatePassword);
+router.delete("/:id", isAuthenticatedUser, deleteUser);
 
 export default router;

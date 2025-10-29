@@ -6,7 +6,7 @@ import {
   getAssignmentById,
   deleteAssignment,
 } from "../controllers/assignmentController.js";
-import { authenticateUser } from "../middleware/auth.js";
+import { isAuthenticatedUser } from "../middleware/auth.js";
 import { upload } from "../middleware/upload.js";
 import { validateRequest } from "../middleware/validation.js";
 import { assignmentSchema } from "../validations/assignmentValidation.js";
@@ -15,14 +15,14 @@ const router = express.Router();
 
 router.post(
   "/:courseId",
-  authenticateUser,
+  isAuthenticatedUser,
   upload.single("file"),
   validateRequest(assignmentSchema),
   createAssignment
 );
 
-router.get("/course/:courseId", authenticateUser, getAssignmentsByCourse);
-router.get("/:id", authenticateUser, getAssignmentById);
-router.delete("/:id", authenticateUser, deleteAssignment);
+router.get("/course/:courseId", isAuthenticatedUser, getAssignmentsByCourse);
+router.get("/:id", isAuthenticatedUser, getAssignmentById);
+router.delete("/:id", isAuthenticatedUser, deleteAssignment);
 
 export default router;
